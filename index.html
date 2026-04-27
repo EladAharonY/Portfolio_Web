@@ -6,7 +6,7 @@
   <title>Elad Aharon — Global Systems Administrator</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=Fira+Code:wght@300;400;500&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -42,6 +42,40 @@
         radial-gradient(ellipse 1000px 700px at 80% -10%, rgba(124, 92, 255, 0.18), transparent 60%),
         radial-gradient(ellipse 800px 500px at -10% 40%, rgba(76, 201, 255, 0.10), transparent 60%);
       background-attachment: fixed;
+    }
+
+    /* ── ENHANCED CODE BACKGROUND ── */
+    #code-bg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      pointer-events: none;
+      /* Base opacity increased since individual columns now handle their own opacity */
+      opacity: 0.35; 
+      font-family: 'Fira Code', monospace;
+      overflow: hidden;
+      /* Smoother masking fade to blend seamlessly into the background */
+      mask-image: linear-gradient(to bottom, transparent 0%, black 20%, black 70%, transparent 100%);
+      -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 20%, black 70%, transparent 100%);
+      grid-column: 1 / -1; 
+      grid-row: 1 / -1;
+    }
+
+    .code-column {
+      position: absolute;
+      top: -200px;
+      white-space: nowrap;
+      animation: fall linear infinite;
+      user-select: none;
+      line-height: 1.5;
+      font-weight: 500;
+    }
+
+    @keyframes fall {
+      from { transform: translateY(-20%); }
+      to { transform: translateY(120%); }
     }
 
     /* ── NAV ── */
@@ -940,6 +974,9 @@
 
 <!-- HERO -->
 <section id="hero" data-screen-label="Hero">
+  <!-- CODE BACKGROUND LAYER -->
+  <div id="code-bg"></div>
+
   <!-- LEFT -->
   <div class="hero-left">
     <div class="hero-tag">
@@ -1608,6 +1645,75 @@
         }, i * 40);
       });
     });
+  });
+
+  // ── ENHANCED CODE RAIN BACKGROUND ──
+  const codeLines = [
+    "sudo systemctl restart nginx", "kubectl get pods -n production", "terraform apply -auto-approve",
+    "aws s3 sync ./dist s3://prod-bucket", "okta users list --status ACTIVE", "jamf policy --check",
+    "python3 automate_onboarding.py", "bash security_audit.sh", "docker-compose up -d",
+    "ssh root@global-edge-01", "openssl x509 -in cert.pem -text", "ansible-playbook site.yml",
+    "git push origin main", "grep -r 'ERROR' /var/log/", "netstat -tuln"
+  ];
+
+  function createCodeRain() {
+    const bg = document.getElementById('code-bg');
+    if (!bg) return;
+    bg.innerHTML = '';
+    
+    // Increased density slightly
+    const cols = Math.floor(bg.offsetWidth / 80); 
+    
+    for (let i = 0; i < cols; i++) {
+      const col = document.createElement('div');
+      col.className = 'code-column';
+      col.style.left = (i * (100 / cols)) + '%';
+      
+      // Calculate depth (z-index abstraction: closer to 1 is closer to screen)
+      const depth = Math.random();
+      
+      // Speed scales with depth (closer = faster)
+      const duration = (12 + Math.random() * 20) / (depth + 0.3);
+      const delay = Math.random() * -30;
+      
+      col.style.animationDuration = duration + 's';
+      col.style.animationDelay = delay + 's';
+      
+      // Size scales with depth
+      col.style.fontSize = Math.floor(10 + depth * 4) + 'px'; 
+      
+      // Opacity scales with depth (background columns are fainter)
+      col.style.opacity = 0.15 + (depth * 0.4); 
+      
+      // Subtle blur for background elements to create field-of-view depth
+      if (depth < 0.3) {
+         col.style.filter = 'blur(1px)';
+      }
+
+      // Add variation to colors to prevent a flat monochrome look
+      const colorRoll = Math.random();
+      if (colorRoll > 0.85) {
+        col.style.color = 'var(--accent)';
+        col.style.textShadow = '0 0 8px var(--accent-glow)';
+      } else if (colorRoll > 0.4) {
+        col.style.color = 'var(--accent-2)';
+        col.style.textShadow = '0 0 8px rgba(76, 201, 255, 0.4)';
+      } else {
+        col.style.color = 'rgba(255, 255, 255, 0.15)';
+      }
+      
+      let content = "";
+      for(let j=0; j<35; j++) content += codeLines[Math.floor(Math.random() * codeLines.length)] + "<br><br>";
+      col.innerHTML = content;
+      bg.appendChild(col);
+    }
+  }
+
+  window.addEventListener('load', createCodeRain);
+  let resizeTimerCodeRain;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimerCodeRain);
+    resizeTimerCodeRain = setTimeout(createCodeRain, 250);
   });
 </script>
 </body>
